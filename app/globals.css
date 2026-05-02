@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f8fb;
+  --foreground: #071827;
+  --ink: #071827;
+  --ink-strong: #020617;
+  --muted-ink: #5f6f82;
+  --panel: #ffffff;
+  --line: rgba(15, 23, 42, 0.12);
+  --line-soft: rgba(15, 23, 42, 0.08);
+  --ring: rgba(37, 99, 235, 0.34);
+
+  --accent-blue: #2563eb;
+  --accent-blue-strong: #1d4ed8;
+  --accent-gold: #f59e0b;
+  --accent-purple: #7c3aed;
+  --accent-purple-strong: #6d28d9;
+  --accent-green: #16a34a;
+  --accent-coral: #f9736b;
+
+  --success: #5a9b75;
+  --success-strong: #397252;
+  --warning: #e7b559;
+  --warning-strong: #9c6f1f;
+  --weak: #e38b4b;
+  --weak-strong: #a95f24;
+  --danger: #d3664a;
+  --danger-strong: #9d432c;
+
+  --badge-blue: rgba(93, 143, 216, 0.15);
+  --badge-blue-ink: #365b98;
+  --badge-green: rgba(90, 155, 117, 0.16);
+  --badge-green-ink: #2f684a;
+  --badge-yellow: rgba(231, 181, 89, 0.2);
+  --badge-yellow-ink: #8c601a;
+  --badge-orange: rgba(227, 139, 75, 0.18);
+  --badge-orange-ink: #8c4e18;
+  --badge-red: rgba(211, 102, 74, 0.16);
+  --badge-red-ink: #933f2b;
+
+  --apa-author-bg: rgba(93, 143, 216, 0.16);
+  --apa-author-ink: #365b98;
+  --apa-author-ring: rgba(93, 143, 216, 0.28);
+  --apa-year-bg: rgba(231, 181, 89, 0.24);
+  --apa-year-ink: #8c601a;
+  --apa-year-ring: rgba(231, 181, 89, 0.34);
+  --apa-title-bg: rgba(90, 155, 117, 0.18);
+  --apa-title-ink: #2f684a;
+  --apa-title-ring: rgba(90, 155, 117, 0.3);
+  --apa-source-bg: rgba(139, 123, 209, 0.18);
+  --apa-source-ink: #5d4e99;
+  --apa-source-ring: rgba(139, 123, 209, 0.28);
+  --apa-detail-bg: rgba(211, 102, 74, 0.18);
+  --apa-detail-ink: #9d432c;
+  --apa-detail-ring: rgba(211, 102, 74, 0.3);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6f8fb 0%, #ffffff 55%, #eef6f8 100%);
+  color: var(--foreground);
+  font-family: var(--font-manrope), sans-serif;
+}
+
+::selection {
+  background: rgba(15, 159, 154, 0.2);
+  color: var(--ink);
+}
+
+.font-display {
+  font-family: var(--font-fraunces), serif;
+}
