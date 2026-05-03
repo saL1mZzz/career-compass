@@ -2606,13 +2606,45 @@ function SimulationRunnerPage({
   setPage: (page: DemoPage) => void;
 }) {
   const [taskIndex, setTaskIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [taskAnswers, setTaskAnswers] = useState<Record<string, string | string[]>>({});
   const task = simulation.tasks[taskIndex];
   const progress = ((taskIndex + 1) / simulation.tasks.length) * 100;
   const meta = getMeta(simulation);
+  const selectedAnswer = taskAnswers[task.id];
+  const isMultiTask = task.taskType === "multi_select" || task.taskType === "data_selection" || task.taskType === "ranking";
+  const maxSelections = task.maxSelections ?? task.options?.length ?? 1;
+  const selectedOptionIds = Array.isArray(selectedAnswer)
+    ? selectedAnswer
+    : typeof selectedAnswer === "string" && task.options
+      ? [selectedAnswer]
+      : [];
+  const hasTaskAnswer = Array.isArray(selectedAnswer)
+    ? selectedAnswer.length > 0
+    : typeof selectedAnswer === "string"
+      ? selectedAnswer.trim().length > 0
+      : false;
+
+  function setTaskAnswer(answer: string | string[]) {
+    setTaskAnswers((current) => ({ ...current, [task.id]: answer }));
+  }
+
+  function toggleOption(optionId: string) {
+    if (!isMultiTask) {
+      setTaskAnswer(optionId);
+      return;
+    }
+
+    const currentlySelected = selectedOptionIds.includes(optionId);
+    if (currentlySelected) {
+      setTaskAnswer(selectedOptionIds.filter((id) => id !== optionId));
+      return;
+    }
+
+    if (selectedOptionIds.length >= maxSelections) return;
+    setTaskAnswer([...selectedOptionIds, optionId]);
+  }
 
   function nextTask() {
-    setSelectedAnswer(null);
     if (taskIndex < simulation.tasks.length - 1) {
       setTaskIndex(taskIndex + 1);
     } else {
@@ -2677,41 +2709,55 @@ function SimulationRunnerPage({
           </div>
           <p className="mt-6 text-lg leading-8 text-slate-700">{task.prompt}</p>
           {task.context ? <p className="mt-3 leading-7 text-slate-500">{task.context}</p> : null}
+          {task.options && isMultiTask ? (
+            <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800">
+              <CheckCircle2 className="size-4" />
+              Select up to {maxSelections}. Selected {selectedOptionIds.length}.
+            </div>
+          ) : null}
           <div className="mt-8 space-y-3">
             {task.options ? (
-              task.options.map((option) => (
-                <motion.button
-                  type="button"
-                  key={option.id}
-                  onClick={() => setSelectedAnswer(option.id)}
-                  whileHover={{ x: 4 }}
-                  className={cn(
-                    "w-full rounded-lg border p-4 text-left transition-colors",
-                    selectedAnswer === option.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-slate-200 bg-[#f8fafc] hover:border-slate-300",
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={cn(
-                        "flex size-6 shrink-0 items-center justify-center rounded-lg border",
-                        selectedAnswer === option.id
-                          ? "border-blue-500 bg-blue-600 text-white"
-                          : "border-slate-300 bg-white text-transparent",
-                      )}
-                    >
-                      <Check className="size-3.5" />
-                    </span>
-                    <span className="font-medium text-slate-800">{option.label}</span>
-                  </div>
-                </motion.button>
-              ))
+              task.options.map((option) => {
+                const active = selectedOptionIds.includes(option.id);
+                const rank = selectedOptionIds.indexOf(option.id) + 1;
+                const disabledByLimit = isMultiTask && !active && selectedOptionIds.length >= maxSelections;
+
+                return (
+                  <motion.button
+                    type="button"
+                    key={option.id}
+                    onClick={() => toggleOption(option.id)}
+                    whileHover={disabledByLimit ? undefined : { x: 4 }}
+                    disabled={disabledByLimit}
+                    className={cn(
+                      "w-full rounded-lg border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-55",
+                      active
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-slate-200 bg-[#f8fafc] hover:border-slate-300",
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "flex size-6 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold",
+                          active
+                            ? "border-blue-500 bg-blue-600 text-white"
+                            : "border-slate-300 bg-white text-transparent",
+                        )}
+                      >
+                        {task.taskType === "ranking" && active ? rank : <Check className="size-3.5" />}
+                      </span>
+                      <span className="font-medium text-slate-800">{option.label}</span>
+                    </div>
+                  </motion.button>
+                );
+              })
             ) : (
               <textarea
                 className="min-h-44 w-full rounded-lg border border-slate-200 bg-[#f8fafc] p-4 text-sm outline-none transition-colors focus:border-blue-400"
                 placeholder="Write your recommendation..."
-                onChange={(event) => setSelectedAnswer(event.target.value)}
+                value={typeof selectedAnswer === "string" ? selectedAnswer : ""}
+                onChange={(event) => setTaskAnswer(event.target.value)}
               />
             )}
           </div>
@@ -2734,7 +2780,11 @@ function SimulationRunnerPage({
             <p className="text-sm text-slate-500">
               {taskIndex + 1} of {simulation.tasks.length} tasks
             </p>
-            <PrimaryButton onClick={nextTask} icon={taskIndex === simulation.tasks.length - 1 ? Trophy : ArrowRight}>
+            <PrimaryButton
+              onClick={nextTask}
+              icon={taskIndex === simulation.tasks.length - 1 ? Trophy : ArrowRight}
+              disabled={!hasTaskAnswer}
+            >
               {taskIndex === simulation.tasks.length - 1 ? "Finish case" : "Next task"}
             </PrimaryButton>
           </div>
